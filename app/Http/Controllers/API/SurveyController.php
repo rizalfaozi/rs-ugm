@@ -92,6 +92,9 @@ class SurveyController extends Controller
             $description = 'Murah';
 
           } 
+
+
+          $session = DB::table('login_session')->where('user_id',Auth::user()->id)->first();
       
            
         DB::table('survey_detail')->insert(
@@ -102,6 +105,8 @@ class SurveyController extends Controller
           'description'=> $description,
           'saran_id'=>'0',
           'status'=>'1',
+          'date'=> date("Y-m-d"),
+          'management_id'=>$session->management_id,
           'created_at'=> DB::raw('now()')
           ]);
 
@@ -118,17 +123,19 @@ class SurveyController extends Controller
     {
         $data = json_decode(file_get_contents('php://input'), true);
      
-        $location_id = DB::table('login_session')->where('user_id',Auth::user()->id)->first()->location_id;
+        $session = DB::table('login_session')->where('user_id',Auth::user()->id)->first();
              
 
         DB::table('survey_detail')->insert(
           [
           'survey_id'=>$data['survey_id'],
-          'location_id'=> $location_id,
+          'location_id'=> $session->location_id,
+          'management_id'=>$session->management_id,
           'jawaban' => 'sr',
           'description'=>'Saran',
           'saran_id'=>$data['saran_id'],
           'status'=>'1',
+          'date'=>date("Y-m-d"),
           'created_at'=> DB::raw('now()')
           ]);
 
@@ -202,109 +209,8 @@ class SurveyController extends Controller
 
               
 
-              if($lokasi =="0")
-              {
-
-                if($start =="" && $finish =="")
-                {  
-
-                $sp = DB::table('survey_detail')
-              ->where('jawaban','sp')
-              ->where(['survey_id'=>$res1[$i]->survey_id])
-              ->count();
-
-                $p = DB::table('survey_detail')
-               ->where('jawaban','p')
-               ->where(['survey_id'=>$res1[$i]->survey_id])
-               ->count();
-
-                $kp = DB::table('survey_detail')
-               ->where('jawaban','kp')
-               ->where(['survey_id'=>$res1[$i]->survey_id])
-               ->count();
-
-                $tp = DB::table('survey_detail')
-                ->where('jawaban','tp')
-                ->where(['survey_id'=>$res1[$i]->survey_id])
-                ->count();
-
-                $sm = DB::table('survey_detail')
-               ->where('jawaban','sm')
-               ->where(['survey_id'=>$res1[$i]->survey_id])
-               ->count();
-
-               $ma = DB::table('survey_detail')
-                ->where('jawaban','ma')
-                ->where(['survey_id'=>$res1[$i]->survey_id])
-                ->count();
-
-                $c = DB::table('survey_detail')
-                ->where('jawaban','c')
-                ->where(['survey_id'=>$res1[$i]->survey_id])
-                ->count();
-
-                $mu = DB::table('survey_detail')
-                ->where('jawaban','mu')
-                ->where(['survey_id'=>$res1[$i]->survey_id])
-                ->count();
-
-                }else{
-
-
-               $sp = DB::table('survey_detail')
-              ->where('jawaban','sp')
-              ->whereBetween('created_at', [$start, $finish])
-              ->where(['survey_id'=>$res1[$i]->survey_id])
-              ->count();
-
-                $p = DB::table('survey_detail')
-               ->where('jawaban','p')
-               ->whereBetween('created_at', [$start, $finish])
-               ->where(['survey_id'=>$res1[$i]->survey_id])
-               ->count();
-
-                $kp = DB::table('survey_detail')
-               ->where('jawaban','kp')
-               ->whereBetween('created_at', [$start, $finish])
-               ->where(['survey_id'=>$res1[$i]->survey_id])
-               ->count();
-
-                $tp = DB::table('survey_detail')
-                ->where('jawaban','tp')
-                ->whereBetween('created_at', [$start, $finish])
-                ->where(['survey_id'=>$res1[$i]->survey_id])
-                ->count();
-
-                $sm = DB::table('survey_detail')
-               ->where('jawaban','sm')
-               ->whereBetween('created_at', [$start, $finish])
-               ->where(['survey_id'=>$res1[$i]->survey_id])
-               ->count();
-
-               $ma = DB::table('survey_detail')
-                ->where('jawaban','ma')
-                ->whereBetween('created_at', [$start, $finish])
-                ->where(['survey_id'=>$res1[$i]->survey_id])
-                ->count();
-
-                $c = DB::table('survey_detail')
-                ->where('jawaban','c')
-                ->whereBetween('created_at', [$start, $finish])
-                ->where(['survey_id'=>$res1[$i]->survey_id])
-                ->count();
-
-                $mu = DB::table('survey_detail')
-                ->where('jawaban','mu')
-                ->whereBetween('created_at', [$start, $finish])
-                ->where(['survey_id'=>$res1[$i]->survey_id])
-                ->count(); 
-
-                }
-              
-              }else{  
-
-                 if($start =="" && $finish =="")
-                 {  
+            if($start =="" && $finish =="")
+            {  
               
               $sp = DB::table('survey_detail')
               ->where('jawaban','sp')
@@ -353,7 +259,7 @@ class SurveyController extends Controller
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
 
-                 }else{
+            }else{
 
                   $sp = DB::table('survey_detail')
               ->where('jawaban','sp')
@@ -408,9 +314,8 @@ class SurveyController extends Controller
                 ->where(['location_id'=>$lokasi])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
-                 }
 
-             }
+                 }
                
               if($survey1[$i]->fungsi =="primary")
               {  
@@ -538,41 +443,49 @@ class SurveyController extends Controller
 
                 $sp = DB::table('survey_detail')
               ->where('jawaban','sp')
+               ->where(['location_id'=>$lokasi])
               ->where(['survey_id'=>$res1[$i]->survey_id])
               ->count();
 
                 $p = DB::table('survey_detail')
                ->where('jawaban','p')
+                ->where(['location_id'=>$lokasi])
                ->where(['survey_id'=>$res1[$i]->survey_id])
                ->count();
 
                 $kp = DB::table('survey_detail')
                ->where('jawaban','kp')
+                ->where(['location_id'=>$lokasi])
                ->where(['survey_id'=>$res1[$i]->survey_id])
                ->count();
 
                 $tp = DB::table('survey_detail')
                 ->where('jawaban','tp')
+                 ->where(['location_id'=>$lokasi])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
 
                 $sm = DB::table('survey_detail')
                ->where('jawaban','sm')
+                ->where(['location_id'=>$lokasi])
                ->where(['survey_id'=>$res1[$i]->survey_id])
                ->count();
 
                $ma = DB::table('survey_detail')
                 ->where('jawaban','ma')
+                 ->where(['location_id'=>$lokasi])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
 
                 $c = DB::table('survey_detail')
                 ->where('jawaban','c')
+                 ->where(['location_id'=>$lokasi])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
 
                 $mu = DB::table('survey_detail')
                 ->where('jawaban','mu')
+                 ->where(['location_id'=>$lokasi])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
 
@@ -581,48 +494,56 @@ class SurveyController extends Controller
 
                $sp = DB::table('survey_detail')
               ->where('jawaban','sp')
+               ->where(['location_id'=>$lokasi])
               ->whereBetween('created_at', [$start, $finish])
               ->where(['survey_id'=>$res1[$i]->survey_id])
               ->count();
 
                 $p = DB::table('survey_detail')
                ->where('jawaban','p')
+                ->where(['location_id'=>$lokasi])
                ->whereBetween('created_at', [$start, $finish])
                ->where(['survey_id'=>$res1[$i]->survey_id])
                ->count();
 
                 $kp = DB::table('survey_detail')
                ->where('jawaban','kp')
+                ->where(['location_id'=>$lokasi])
                ->whereBetween('created_at', [$start, $finish])
                ->where(['survey_id'=>$res1[$i]->survey_id])
                ->count();
 
                 $tp = DB::table('survey_detail')
                 ->where('jawaban','tp')
+                 ->where(['location_id'=>$lokasi])
                 ->whereBetween('created_at', [$start, $finish])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
 
                 $sm = DB::table('survey_detail')
                ->where('jawaban','sm')
+                ->where(['location_id'=>$lokasi])
                ->whereBetween('created_at', [$start, $finish])
                ->where(['survey_id'=>$res1[$i]->survey_id])
                ->count();
 
                $ma = DB::table('survey_detail')
                 ->where('jawaban','ma')
+                 ->where(['location_id'=>$lokasi])
                 ->whereBetween('created_at', [$start, $finish])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
 
                 $c = DB::table('survey_detail')
                 ->where('jawaban','c')
+                 ->where(['location_id'=>$lokasi])
                 ->whereBetween('created_at', [$start, $finish])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count();
 
                 $mu = DB::table('survey_detail')
                 ->where('jawaban','mu')
+                 ->where(['location_id'=>$lokasi])
                 ->whereBetween('created_at', [$start, $finish])
                 ->where(['survey_id'=>$res1[$i]->survey_id])
                 ->count(); 
@@ -673,20 +594,30 @@ class SurveyController extends Controller
             }
 
               
-             
+        if($lokasi !="0")
+         {      
+           $lantai = DB::table('location')->where('id',$lokasi)->first()->name;
+         }else{
+          $lantai = '';
+         }         
 
     return response()->json([
-      'status'=>true,
+      'status'=>'true',
+      'resepsionis'=>$ruang1,
+      'lantai' => $lantai,
       'categories'=>$title,
       'sp'=>$sp1,
       'p'=>$p1,
       'kp'=>$kp1,
       'tp'=>$tp1,
-      'resepsionis'=>$ruang1,
+     
       'start'=>$start,
       'finish'=>$finish,
       'message'=>'Data Chart'
     ]);
+
+
+
 
           
         
@@ -883,21 +814,20 @@ class SurveyController extends Controller
         $finish = $data['datefinish'];
         $lokasi = $data['location_id'];
 
-       if($start =="")
+       if($start=='')
        {
         
-       $res1 = DB::table('survey_detail as a')
-       ->select('a.saran_id')
-        ->where(['a.jawaban'=>'sr','location_id'=>0])
-       ->groupBy('a.saran_id')
-       ->get();
+         $res1 = DB::table('survey_detail as a')
+         ->select('a.saran_id')
+         ->where(['a.jawaban'=>'sr','management_id'=>1,'a.location_id'=>$lokasi])
+         ->groupBy('a.saran_id')
+         ->get();
 
-     }else{
+      }else{
 
          $res1 = DB::table('survey_detail as a')
        ->select('a.saran_id')
-        ->where(['a.jawaban'=>'sr','location_id'=>0])
-        ->whereBetween('a.created_at', [$start, $finish])
+        ->where(['a.jawaban'=>'sr','management_id'=>1,'a.location_id'=>$lokasi])
        ->groupBy('a.saran_id')
        ->get();
 
@@ -919,16 +849,16 @@ class SurveyController extends Controller
                {
 
                 $hasil[$i]  = DB::table('survey_detail')
-                ->where('jawaban','sr')
+                ->where(['jawaban'=>'sr','management_id'=>1,'location_id'=>$lokasi])
                 ->where(['saran_id'=>$res1[$i]->saran_id])
                 ->count();
 
                }else{
 
                   $hasil[$i]  = DB::table('survey_detail')
-                ->where('jawaban','sr')
+               ->where(['jawaban'=>'sr','management_id'=>1,'location_id'=>$lokasi])
                 ->where(['saran_id'=>$res1[$i]->saran_id])
-                 ->whereBetween('a.created_at', [$start, $finish])
+                 ->whereBetween('date', [$start, $finish])
                 ->count(); 
 
                }
@@ -952,30 +882,45 @@ class SurveyController extends Controller
         $finish = $data['datefinish'];
         $lokasi = $data['location_id'];
       
-        if($start =="")
+        if($start=='')
         {
    
            $res1 = DB::table('survey_detail as a')
-       ->select('a.saran_id')
-        ->where('a.jawaban','sr')
-        ->where('a.location_id', '<>', '0')
+          ->select('a.saran_id')
+         ->where(['a.jawaban'=>'sr','management_id'=>2,'a.location_id'=>$lokasi])
+        // ->where('a.location_id', '<>', '0')
        //->where(['a.jawaban'=>'sr','a.location_id'=>$lokasi])
        ->groupBy('a.saran_id')
        ->get();   
 
         }else{
 
+
+          if($lokasi !=0)
+          {  
+
         
           $res1 = DB::table('survey_detail as a')
        ->select('a.saran_id')
-        ->where(['a.jawaban'=>'sr','a.location_id'=>$lokasi])
-         ->whereBetween('a.created_at', [$start, $finish])
+        ->where(['a.jawaban'=>'sr','a.location_id'=>$lokasi,'management_id'=>2])
+        
        ->groupBy('a.saran_id')
        ->get();
 
+         }else{
+ 
+          $res1 = DB::table('survey_detail as a')
+       ->select('a.saran_id')
+        ->where(['a.jawaban'=>'sr','management_id'=>2])
+        
+       ->groupBy('a.saran_id')
+       ->get();
+
+
+         }
+
         } 
 
-      
 
         $jml1 = count($res1);
         $saran[] = '';
@@ -1005,17 +950,28 @@ class SurveyController extends Controller
               {
 
               $hasil[$i]  = DB::table('survey_detail')
-              ->where('jawaban','sr')
-              ->where('location_id', '<>', '0')
+                ->where(['jawaban'=>'sr','management_id'=>2,'location_id'=>$lokasi])
               ->where(['saran_id'=>$res1[$i]->saran_id])
               ->count();
 
             }else{
 
-              $hasil[$i]  = DB::table('survey_detail')
-              ->where(['saran_id'=>$res1[$i]->saran_id,'jawaban'=>'sr','location_id'=>$lokasi])
-              ->whereBetween('created_at', [$start, $finish])
-              ->count();
+                 if($lokasi !=0)
+                {
+
+                    $hasil[$i]  = DB::table('survey_detail')
+                    ->where(['saran_id'=>$res1[$i]->saran_id,'jawaban'=>'sr','location_id'=>$lokasi,'management_id'=>2])
+                    ->whereBetween('date', [$start, $finish])
+                    ->count();
+
+                }else{
+
+                       $hasil[$i]  = DB::table('survey_detail')
+                    ->where(['saran_id'=>$res1[$i]->saran_id,'jawaban'=>'sr','management_id'=>2])
+                    ->whereBetween('date', [$start, $finish])
+                    ->count();
+
+                }
 
 
             }
@@ -1027,7 +983,7 @@ class SurveyController extends Controller
 
         }
 
-       return response()->json(['status'=>true,'data'=>$report, 'grafik'=>$grsaran,'jml'=>$jml,'message'=>'Data saran']);
+      return response()->json(['status'=>true,'data'=>$report, 'grafik'=>$grsaran,'jml'=>$jml,'message'=>'Data saran']);
     }
 
     public function lantai(Request $request)
@@ -1035,6 +991,21 @@ class SurveyController extends Controller
 
       $lantai = DB::table('survey_detail as a')->select('b.id','b.name')
        ->join('location as b', 'a.location_id', '=', 'b.id')
+       ->where('type','gedung')
+       ->groupBy('b.id')
+      ->get();
+
+
+      return response()->json(['status'=>true,'data'=>$lantai,'message'=>'Data gedung']);
+    }
+
+
+    public function reseps(Request $request)
+    {
+
+      $lantai = DB::table('survey_detail as a')->select('b.id','b.name')
+       ->join('location as b', 'a.location_id', '=', 'b.id')
+        ->where('type','resepsionis')
        ->groupBy('b.id')
       ->get();
 

@@ -27,6 +27,12 @@ class UserController extends Controller
             $phoneID = DB::table('users')->where(['phone'=>$data['phone']])->first();
             if(empty($phoneID))
             {
+                
+                 $username = DB::table('users')->where(['name'=>$data['username']])->first();
+                 
+                if(empty($username))
+                {
+                
                 //phone nda cocok # register
                 $user = $this->user->create([
                   'name' => $data['name'],
@@ -58,7 +64,11 @@ class UserController extends Controller
           
             return response()->json(compact('token'));
 
-
+                }else{
+                    
+                      return response()->json(['status'=>false,'message'=>'username sudah ready']);
+                    
+                }
 
 
             }else{
@@ -81,71 +91,66 @@ class UserController extends Controller
 
         $credentials = json_decode(file_get_contents('php://input'), true);
         
-        $nol = substr($credentials['email'],0,1);
-        $user = DB::table('users')->where(['phone'=>$credentials['email']])->first();
-        if(!empty($user))
-        {
-            //login by phone
-              
-            $token = null;
-            $login['email'] =  $user->email;
-            $login['password'] =  $credentials['password'];   
-              
-               
-        }else{
-              
-
-             //login by email    
-            $token = null;
-            $login['email'] =  $credentials['email'];
-            $login['password'] =  $credentials['password'];
-            
-               
-        }    
+       
         
-         try {
-               if (!$token = JWTAuth::attempt($login))
-               {
-                    if($nol=="0")
-                    {
-                         $status="phone";      
-                         $message = "invalid_phone_or_password";
-                    }else{
-                         $status="email";     
-                         $message = "invalid_email_or_password";
-                    }    
-                    return response()->json(['status'=>$status,'message'=>$message]);
-                  
-               }
-            } catch (JWTAuthException $e) {
-                return response()->json(['failed_to_create_token'], 500);
-            }
-   
-            $session = DB::table('login_session')->where('user_id',Auth::user()->id)->first();
-            if(Auth::user()->type == "operator")
-            {
-
-              if(empty($session))
-              {
-                 
-                  DB::table('login_session')->insert(['user_id'=>Auth::user()->id,'location_id'=>$credentials['location_id'],'management_id'=>$credentials['management_id']]); 
-                 
-              }
-              else if($session->user_id == Auth::user()->id)
-              { 
-
-               if($session->location_id != $credentials['location_id']) 
-               {
-                  DB::table('login_session')->where(['user_id'=>Auth::user()->id])->update(['location_id'=>$credentials['location_id']]);  
-               } 
-
-            }
-            return response()->json(compact('token'));
-            }else{
-              $status="operator";     
-              $message = "akses_tidak_valid";
+        $check = DB::table('users')->where('name', $credentials['username'])->get();
+        
+        
+       
+      if(count($check)==0)
+      {
+              $status = '1';
+              $message = "Akun belum terdaftar!!";
               return response()->json(['status'=>$status,'message'=>$message]);
-            }  
+        
+      }else{
+          
+          if($check[0]->type =='admin')
+          {
+              
+             $status = '4';
+            $message = "Akses tidak di izinkan!!";
+            return response()->json(['status'=>false,'message'=>$message]);
+              
+          }else{
+           
+                    $session = DB::table('login_session')->where('user_id',$check[0]->id)->get();
+           
+                    if(count($session) !=0)
+                    {
+                          $status = '2';
+                          $message = "Akun sudah dipakai!!";
+                          return response()->json(['status'=>$status,'message'=>$message]);
+                        
+                    }else{
+                        
+                        
+                        $login['email'] =  $check[0]->email;
+                        $login['password'] =  $credentials['password'];
+                        try {
+                          if (!$token = JWTAuth::attempt($login))
+                          {
+                              $status = '3';
+                              $message = "Login gagal password salah!!";
+                              return response()->json(['status'=>false,'message'=>$message]);
+                               
+                          }
+                          
+                        } catch (JWTAuthException $e) {
+                            return response()->json(['failed_to_create_token'], 500);
+                        } 
+                        
+                        DB::table('login_session')->insert(['user_id'=>Auth::user()->id,'location_id'=>$credentials['location_id'],'management_id'=>$credentials['management_id']]);
+                        
+                        return response()->json(compact('token'));
+                          
+                    }
+          }
+      }
+        
+        
+        
+     
     }
 
     public function loginadmin(Request $request){

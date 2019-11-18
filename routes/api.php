@@ -19,6 +19,7 @@ Route::post('auth/login', 'UserController@login');
 Route::get('auth/gedung', 'UserController@gedung');
 Route::get('auth/resep', 'UserController@resepsionis');
 Route::get('lantai', 'SurveyController@lantai'); 
+Route::get('reseps', 'SurveyController@reseps'); 
 Route::group(['middleware' => 'jwt.auth'], function () {
      
      Route::get('survey', 'SurveyController@index');
